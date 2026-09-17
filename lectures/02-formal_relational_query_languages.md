@@ -122,7 +122,7 @@ An example with the union operation:
 
 > Syntax: $r - s$
 
-A more formal definition is $r - s = \{t | t \in r \land t \in s\}$.
+A more formal definition is $r - s = \{t | t \in r \land t \notin s\}$.
 
 For $r \cup s$ to be valid:
 
@@ -160,7 +160,7 @@ A more formal definition is $r \times s = \{t q| t \in r \land q \in s\}$, where
 
 This definition assumes that attribtues of $r(R)$ and $s(S)$ are disjoint, or that $R \cap S = \emptyset$. If they are not disjoint, then renaming must be used
 
-An example with the cartesian operation:
+An example with the cartesian product operation:
 
 * Relation $r$:
 
@@ -169,7 +169,7 @@ An example with the cartesian operation:
 | $\alpha$ | 1 |
 | $\beta$ | 2 |
 
-$ Relation $s$:
+* Relation $s$:
 
 | $C$ | $D$ | $E$ |
 |---|---|---|
@@ -236,5 +236,131 @@ A general *relational algebra expression* is either a basic expression or an exp
 * $E_1 - E_2$
 * $E_1 \times E_2$
 * $\sigma_{P}(E_1)$, where $P$ is a predicate on attributes in $E_1$
-* $\prod{p}(E_1)$, where $p$ is a predicate on attributes in $E_1$
+* $\prod_{p}(E_1)$, where $p$ is a predicate on attributes in $E_1$
 * $\rho_{x(A_1, A_2,..., A_n)}(E_1)$, where $x(A_1, A_2,..., A_n)$ isthe new name for $E_1$ and its attributes.
+
+## Additional Operations
+
+Additional relation operators can be defined that do not add any expressive power to the relational algebra but simplify common queries:
+
+* Set Intersection: $\cap$
+* Natural Join: $\bowtie$
+  * Theta Join: $\bowtie_{\theta}$
+* Assignment: $\leftarrow$
+* Set Division: $\div$
+* Outer Join: covered later
+
+## Set Intersection Operation
+
+> Syntax: $r \cap s$
+
+A more formal definition is $r \cap s = \{t | t \in r \land q \in s\}$.
+
+For $r \cap s$ to be valid:
+
+1. $r, s$ must have the same $n$-arity (number of attributes).
+2. The attribute domains must be compatible
+
+An example with the set intersection operation:
+
+* Relation $r$:
+
+| $A$ | $B$ |
+|---|---|
+| $\alpha$ | 1 |
+| $\alpha$ | 2 |
+| $\beta$ | 1 |
+
+* Relation $s$:
+
+| $A$ | $B$ |
+|---|---|
+| $\alpha$ | 2 |
+| $\beta$ | 3 |
+
+* Relation $r \cap s$:
+
+| $A$ | $B$ |
+|---|---|
+| $\alpha$ | 2 |
+
+## Assignment Operation
+
+The assignment operator allows complex queries to be assigned to a temporary relation variable.
+
+An example with the assignment operation for finding the largest salary in a university:
+
+$\text{temp} \leftarrow \prod_{\text{instructor.salary}}(\sigma_{\text{instructor.salary}} < \text{d.salary}(\text{instructor} \times \rho_{d}({\text{instructor}})))$ 
+
+$\prod_{\text{salary}}(\text{instructor}) - \text{temp}$
+
+## Natural Join Operation
+
+> Syntax: $r \bowtie s$
+
+Let $r$ and $s$ be relations on schemas $R$ and $S$ respectively. Then $r \bowtie s$ is a relation on schema $R \cup S$ obtained as follows:
+
+* Consider each pair of tuples $t_r$ from $r$ and $t_s$ from $s$.
+* If $t_r$ and $t_s$ have the same value on each of the attributes in $R \cap S$, add a tuple $t$ to the result where:
+  * $t$ has the same value as $t_r$ for attributes in $R$
+  * $t$ has the same value as $t_s$ for attributes in $S$
+
+An example with the natural join operation:
+
+* $R = (A,B,C,D)$
+* $S = (B,D,E)$
+
+Result schema = $(A, B, C, D, E)$.
+
+* Relation $r$:
+
+| $A$ | $B$ | $C$ | $D$ |
+|---|---|---|---|
+| $\alpha$ | 1 | $\alpha$ | a |
+| $\beta$ | 2 | $\gamma$ | a |
+| $\gamma$ | 4 | $\beta$ | b |
+| $\alpha$ | 1 | $\gamma$ | a |
+| $\delta$ | 2 | $\beta$ | b |
+
+* Relation $s$:
+
+| $B$ | $D$ | $E$ |
+|---|---|---|
+| 1 | a | $\alpha$ |
+| 3 | a | $\beta$ |
+| 1 | a | $\gamma$ |
+| 2 | b | $\delta$ |
+| 3 | b | $\varepsilon$ |
+
+* $r \bowtie s$:
+
+| $A$ | $B$ | $C$ | $D$ | $E$ |
+|---|---|---|---|---|
+| $\alpha$ | 1 | $\alpha$ | a | $\alpha$ |
+| $\alpha$ | 1 | $\alpha$ | a | $\gamma$ |
+| $\alpha$ | 1 | $\gamma$ | a | $\alpha$ |
+| $\alpha$ | 1 | $\gamma$ | a | $\gamma$ |
+| $\delta$ | 2 | $\beta$ | b | $\delta$ |
+
+## Theta Join Operation
+
+> Syntax: $r \bowtie_{\theta} s$
+
+Theta join is a generalization of the natural join that allows joins on any condition (predicate), not just equality of common attributes.
+
+A more formal definition is $r \bowtie_{\theta} s = \sigma_{\theta}(r \times s)$, where $\theta$ is a join condition.
+
+An example with the theta join operation:
+
+* Example Schema
+  * `pet`: $(p_\text{id}, \text{name}, \text{species})$
+  * `owner`: $(o_\text{id}, \text{name}, \text{address})$
+  * `owns`: $(p_\text{id}, o_\text{id})$
+
+Query: Find the name and address of every dog that has an owner.
+
+$\text{temp} \leftarrow (\text{pet} \bowtie \text{owns})$
+
+$\text{temp2} \leftarrow \text{temp} \bowtie_{\text{temp}.o_\text{id} = \text{owner}.o_\text{id}} \text{owner}$
+
+$\prod_{\text{temp.name, address}}(\sigma_{\text{species} = \text{"dog"}}(\text{temp2}))$
