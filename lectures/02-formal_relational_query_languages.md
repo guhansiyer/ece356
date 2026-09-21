@@ -364,3 +364,38 @@ $\text{temp} \leftarrow (\text{pet} \bowtie \text{owns})$
 $\text{temp2} \leftarrow \text{temp} \bowtie_{\text{temp}.o_\text{id} = \text{owner}.o_\text{id}} \text{owner}$
 
 $\prod_{\text{temp.name, address}}(\sigma_{\text{species} = \text{"dog"}}(\text{temp2}))$
+
+## Division Operation
+
+> Syntax: $r \div s$
+
+Given relations $r(R)$ and $s(S)$, such that $S \subset R$, $r \div s$ is the largest relation $t(R-S)$ such that $t \times s \subseteq r$.
+
+An example with the division operation:
+
+Let `r(ID, course_id)` = $\prod_{\text{ID, course\_id}}(\text{takes})$, `s(course_id)` = $\prod_{\text{course\_id}}(\sigma_{\text{dept\_name=biology}}(\text{course}))$.
+
+Then $r \div s$ gives us all students who have taken all courses in the biology department.
+
+## Null Values
+
+*null* signifies an uknown value or that a value does not exist. The result of any arithmetic expression involving *null* is *null*.
+
+Comparisons with null values return the specical truth value *unknown*.
+
+* If *false* was used instead of unknown, then `not(A<5)` would be equivalent to `A>=5`.
+
+Three valued logic using *unknown*:
+
+* AND:
+  * true AND unknown = unknown
+  * false AND unknown = false
+  * unknown AND unknown = unknown
+* OR:
+  * true OR unknown = true
+  * false OR unknown = unknown
+  * unknown OR unknown = unknown
+* NOT:
+  * NOT unknown = unknown
+
+In SQL, the expression "P is unknown" evaluates to true if the predicate P evaluates to unknown, and false otherwise.
