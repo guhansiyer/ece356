@@ -344,4 +344,3 @@ where salary * 10 > (
 		where department.dept_name = instructor.dept_name
 )
 ```
-
