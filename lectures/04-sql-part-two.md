@@ -528,3 +528,101 @@ update instructor
 set salary = salary * 3.14
 where salary < 80000
 ```
+
+## Optional Material (Bonus)
+
+### Date and Time
+
+Return current date and time:
+
+```sql
+select now();
+```
+
+Return yesterday's date:
+
+```sql
+select current_date() - interval 1 day;
+```
+
+Add one week to a date:
+
+```sql
+select date_add(current_date(), interval 1 week);
+```
+
+Find people younger than 65 using a birth date column:
+
+```sql
+select *
+from person
+where birth_date >= current_date() - interval 65 year;
+```
+
+The exact date and time functions vary by DBMS, but the general principles are similar across vendors.
+
+
+### Common Table Expressions (CTEs)
+
+A **common table expression (CTE)** defines a temporary named relation that exists only for the duration of a single SQL statement. CTEs make complex queries easier to read and help break a query into smaller, named steps.
+
+The basic syntax is:
+
+```sql
+with cte_name as (
+    <query expression>
+)
+select *
+from cte_name;
+```
+
+A CTE can be used to simplify repeated subqueries or to structure a query in stages.
+
+For example, find departments whose average salary exceeds $80,000:
+
+```sql
+with dept_salary as (
+    select dept_name, avg(salary) as avg_salary
+    from instructor
+    group by dept_name
+)
+select dept_name, avg_salary
+from dept_salary
+where avg_salary > 80000;
+```
+
+A CTE can also be used as a reusable intermediate result in a larger query:
+
+```sql
+with physics_instructors as (
+    select ID, name, salary
+    from instructor
+    where dept_name = 'Physics'
+),
+ranked as (
+    select ID, name, salary,
+           row_number() over (order by salary desc) as rnk
+    from physics_instructors
+)
+select ID, name, salary
+from ranked
+where rnk <= 3;
+```
+
+`row_number()` is a window function, and the CTE makes the logic clearer than nesting the same subquery repeatedly.
+
+Some DBMSs also support **recursive CTEs**, where a CTE refers to itself. This is useful for hierarchical data such as organizational charts or part-subpart relationships.
+
+```sql
+with recursive numbers(x) as (
+    select 1
+    union all
+    select x + 1
+    from numbers
+    where x < 5
+)
+select *
+from numbers;
+```
+
+This produces the integers 1 through 5. Recursive CTEs are supported in modern PostgreSQL, MySQL 8+, and other SQL dialects, but not in all older database systems.
